@@ -6,17 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
-import mx.com.misterjob.dto.AuditoriaDto;
 import mx.com.misterjob.dto.ResponseDto;
 import mx.com.misterjob.dto.UsuariosDto;
-import mx.com.misterjob.repository.UsuariosRepository;
+import mx.com.misterjob.entity.UsuariosEntity;
+import mx.com.misterjob.repository.dao.UsuariosRepositoryDao;
 import mx.com.misterjob.service.AuditoriaService;
 import mx.com.misterjob.service.UsuariosService;
 
 @Service
 public class UsuariosServiceImpl implements UsuariosService{
 	@Autowired
-	private UsuariosRepository usuariosRepository;
+	private UsuariosRepositoryDao usuariosRepositoryDao; //Remove DAO for previous repository methods
 	@Autowired
 	private AuditoriaService auditoriaService;
 
@@ -24,7 +24,7 @@ public class UsuariosServiceImpl implements UsuariosService{
 		ResponseDto response = new ResponseDto();
 		
 		try {
-			List<UsuariosDto> usuarios = usuariosRepository.getUsuarios();
+			List<UsuariosEntity> usuarios = usuariosRepositoryDao.getUsuarios();
 			
 			if(usuarios != null && !usuarios.isEmpty()) {
 				response.setCode(1);
@@ -55,7 +55,7 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosDto usuario = usuariosRepository.getUsuarioById(idUsuario, update);
+				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioById(idUsuario, update);
 				
 				if(usuario != null) {
 					response.setCode(1);
@@ -90,7 +90,7 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosDto usuario = usuariosRepository.getUsuarioByUsername(usernameUsuario, idUsuario);
+				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioByUsername(usernameUsuario, idUsuario);
 				
 				if(usuario != null) {
 					response.setCode(1);
@@ -125,7 +125,7 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosDto usuario = usuariosRepository.getUsuarioByEmail(emailUsuario, idUsuario);
+				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioByEmail(emailUsuario, idUsuario);
 				
 				if(usuario != null) {
 					response.setCode(1);
@@ -160,26 +160,22 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = usuariosRepository.insertUsuario(usuario);
-		        
-		        if(insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se insertó correctamente");
-		        	
-		        	/*AuditoriaDto auditoria = new AuditoriaDto();
-		        	auditoria.setIdUser(1);
-		        	auditoria.setIdAction((byte) 1);
-		        	auditoria.setIdTable((byte) 1);
-		        	auditoria.setRecordId(recordId); //Todo all this, find a way.
-		        	auditoria.setNewData(newData);
-		        	auditoria.setOldData(null);
-		        	auditoria.setMadeAt(madeAt);
-		        	
-		        	auditoriaService.insertAuditoria(auditoria);*/
-		        } else {
-		    		response.setCode(-1);
-		    		response.addMessage("No se insertaron registros");
-		        }
+				UsuariosEntity usuarioEntidad = userDtoToEntity(usuario);
+				
+		        usuariosRepositoryDao.create(usuarioEntidad);
+		        response.setCode(1);
+	        	response.addMessage("Se insertó correctamente");
+	        	
+	        	/*AuditoriaDto auditoria = new AuditoriaDto();
+	        	auditoria.setIdUser(1);
+	        	auditoria.setIdAction((byte) 1);
+	        	auditoria.setIdTable((byte) 1);
+	        	auditoria.setRecordId(recordId); //Todo all this, find a way.
+	        	auditoria.setNewData(newData);
+	        	auditoria.setOldData(null);
+	        	auditoria.setMadeAt(madeAt);
+	        	
+	        	auditoriaService.insertAuditoria(auditoria);*/
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -205,16 +201,12 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer updateResponse = usuariosRepository.updateUsuario(usuario);
-		        
-		        if(updateResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se actualizó correctamente");
-		        	//Auditoria Service
-		        } else {
-		    		response.setCode(-1);
-		    		response.addMessage("No se actualizaron registros");
-		        }
+				UsuariosEntity usuarioEntidad = userDtoToEntity(usuario);
+				
+		        usuariosRepositoryDao.update(usuarioEntidad);
+	        	response.setCode(1);
+	        	response.addMessage("Se actualizó correctamente");
+	        	//Auditoria Service
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -238,15 +230,9 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer deleteResponse = usuariosRepository.deleteUsuario(idUsuario);
-		        
-		        if (deleteResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se eliminó correctamente");
-		        } else {
-		        	response.setCode(-1);
-		    		response.addMessage("No se eliminaron registros");
-		        }
+		        usuariosRepositoryDao.delete(idUsuario);
+		        response.setCode(1);
+		        response.addMessage("Se eliminó correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -259,6 +245,26 @@ public class UsuariosServiceImpl implements UsuariosService{
 		}
 
 		return response;
+	}
+	
+	//Mapper
+	
+	private UsuariosEntity userDtoToEntity(UsuariosDto usuario) {
+		UsuariosEntity usuarioEntidad = new UsuariosEntity();
+		usuarioEntidad.setIdUser(usuario.getIdUser());
+		usuarioEntidad.setUsername(usuario.getUsername());
+		usuarioEntidad.setEmail(usuario.getEmail());
+		usuarioEntidad.setPasswordHash(usuario.getPasswordHash());
+		usuarioEntidad.setDisplayName(usuario.getDisplayName());
+		usuarioEntidad.setProfilePicture(usuario.getProfilePicture());
+		usuarioEntidad.setBio(usuario.getBio());
+		usuarioEntidad.setRole(usuario.getRole());
+		usuarioEntidad.setCreatedAt(usuario.getCreatedAt());
+		usuarioEntidad.setUpdatedAt(usuario.getUpdatedAt());
+		usuarioEntidad.setLastLogin(usuario.getLastLogin());
+		usuarioEntidad.setActive(usuario.isActive());
+		
+		return usuarioEntidad;
 	}
 	
 	//Validaciones
