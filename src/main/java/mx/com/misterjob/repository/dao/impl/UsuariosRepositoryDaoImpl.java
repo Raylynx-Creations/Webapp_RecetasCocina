@@ -22,14 +22,15 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		
 		return (List<UsuariosEntity>) criteria.list();
 	}
-
+	
+	@Transactional()
 	public UsuariosEntity getUsuarioById(Integer idUsuario, Boolean update) {
 		final Session session = sessionFactory.getCurrentSession();
 		final Criteria criteria = session.createCriteria(UsuariosEntity.class); 
 		
 		criteria.add(Restrictions.eq("idUser", idUsuario)); // --> where idUser = ?
 		if (!update) {
-			criteria.add(Restrictions.eq("isActive", 1));
+			criteria.add(Restrictions.eq("isActive", true));
 		}
 //		criteria.add(Restrictions.eq("nombreCompleto", datos.getNombreCompleto())); // --> where estado = ?
 //		criteria.add(Restrictions.eq("otro campo", datos.otro campo)); // --> where estado = ?
@@ -37,6 +38,7 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		return (UsuariosEntity) criteria.uniqueResult();
 	}
 	
+	@Transactional()
 	public UsuariosEntity getUsuarioByUsername(String usernameUsuario, Integer idUsuario) {
 		final Session session = sessionFactory.getCurrentSession();
 		final Criteria criteria = session.createCriteria(UsuariosEntity.class); 
@@ -49,6 +51,7 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		return (UsuariosEntity) criteria.uniqueResult();
 	}
 	
+	@Transactional()
 	public UsuariosEntity getUsuarioByEmail(String emailUsuario, Integer idUsuario) {
 		final Session session = sessionFactory.getCurrentSession();
 		final Criteria criteria = session.createCriteria(UsuariosEntity.class); 
