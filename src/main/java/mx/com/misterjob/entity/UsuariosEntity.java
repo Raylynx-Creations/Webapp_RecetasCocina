@@ -4,14 +4,16 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import mx.com.misterjob.attributeConverters.LocalDateTimeConverter;
 
 @Entity
 @Table(name = "USERS", schema="ADMIN_RECETAS_WEBSITE")
@@ -38,6 +40,7 @@ public class UsuariosEntity {
 	@Column(name = "DISPLAY_NAME")
 	private String displayName;
 	
+	@Lob
 	@Column(name = "PROFILE_PICTURE")
 	private byte[] profilePicture;
 	
@@ -48,15 +51,15 @@ public class UsuariosEntity {
 	private Byte role;
 	
 	@Column(name = "CREATED_AT")
-	@JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+	@Convert(converter = LocalDateTimeConverter.class)
 	private LocalDateTime createdAt;
 	
 	@Column(name = "UPDATED_AT")
-	@JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+	@Convert(converter = LocalDateTimeConverter.class)
 	private LocalDateTime updatedAt;
 	
 	@Column(name = "LAST_LOGIN")
-	@JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+	@Convert(converter = LocalDateTimeConverter.class)
 	private LocalDateTime lastLogin;
 	
 	@Column(name = "IS_ACTIVE")

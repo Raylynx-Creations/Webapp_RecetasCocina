@@ -43,6 +43,7 @@ public class UsuariosServiceImpl implements UsuariosService{
 		catch (Exception exception) {
 			response.setCode(-100);
 			response.addMessage("Error al consultar los usuarios, verifique");
+			exception.printStackTrace();
 		}
 		
 		return response;
