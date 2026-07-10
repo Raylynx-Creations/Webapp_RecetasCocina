@@ -20,6 +20,8 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		final Criteria criteria = session.createCriteria(UsuariosEntity.class); 
 //		criteria -> SELECT * FROM + ESQUEMA + USUARIOS_ADMIN --> select * from esquema.tabla;
 		
+		criteria.add(Restrictions.eq("isActive", true));
+		
 		return (List<UsuariosEntity>) criteria.list();
 	}
 	
@@ -45,7 +47,7 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		
 		criteria.add(Restrictions.eq("username", usernameUsuario));
 		if (idUsuario != null) {
-			criteria.add(Restrictions.eq("idUser", idUsuario));
+			criteria.add(Restrictions.ne("idUser", idUsuario));
 		}
 		
 		return (UsuariosEntity) criteria.uniqueResult();
@@ -58,7 +60,7 @@ public class UsuariosRepositoryDaoImpl extends GenericDao<UsuariosEntity, Intege
 		
 		criteria.add(Restrictions.eq("email", emailUsuario));
 		if (idUsuario != null) {
-			criteria.add(Restrictions.eq("idUser", idUsuario));
+			criteria.add(Restrictions.ne("idUser", idUsuario));
 		}
 		
 		return (UsuariosEntity) criteria.uniqueResult();

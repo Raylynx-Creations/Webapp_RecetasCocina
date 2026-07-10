@@ -232,8 +232,12 @@ public class UsuariosServiceImpl implements UsuariosService{
 		
 		if (response.getCode() == null) {
 			try {
-		        usuariosRepositoryDao.delete(idUsuario);
-		        response.setCode(1);
+		        //usuariosRepositoryDao.delete(idUsuario); //Not actual deletition, logical deletition instead
+		        UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioById(idUsuario, false);
+		        usuario.setActive(false);
+		        usuariosRepositoryDao.update(usuario);
+		        
+				response.setCode(1);
 		        response.addMessage("Se eliminó correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
