@@ -8,19 +8,20 @@ import org.springframework.stereotype.Service;
 
 import mx.com.misterjob.dto.ResponseDto;
 import mx.com.misterjob.dto.TagsDto;
-import mx.com.misterjob.repository.TagsRepository;
+import mx.com.misterjob.entity.TagsEntity;
+import mx.com.misterjob.repository.dao.TagsRepositoryDao;
 import mx.com.misterjob.service.TagsService;
 
 @Service
 public class TagsServiceImpl implements TagsService {
 	@Autowired
-	private TagsRepository tagsRepository;
+	private TagsRepositoryDao tagsRepositoryDao;
 	
 	public ResponseDto getTags() {
 		ResponseDto response = new ResponseDto();
 		
 		try {
-			List<TagsDto> tags = tagsRepository.getTags();
+			List<TagsEntity> tags = tagsRepositoryDao.getTags();
 			
 			if(tags != null && !tags.isEmpty()) {
 				response.setCode(1);
@@ -51,7 +52,7 @@ public class TagsServiceImpl implements TagsService {
 		
 		if (response.getCode() == null) {
 			try {
-				TagsDto tags = tagsRepository.getTagById(idTag, update);
+				TagsEntity tags = tagsRepositoryDao.getTagById(idTag, update);
 				
 				if(tags != null) {
 					response.setCode(1);
@@ -86,7 +87,7 @@ public class TagsServiceImpl implements TagsService {
 		
 		if (response.getCode() == null) {
 			try {
-				TagsDto tag = tagsRepository.getTagByName(nameTag, idUsuario);
+				TagsEntity tag = tagsRepositoryDao.getTagByName(nameTag, idUsuario);
 				
 				if(tag != null) {
 					response.setCode(1);
@@ -121,15 +122,11 @@ public class TagsServiceImpl implements TagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = tagsRepository.insertTag(tag);
-		        
-		        if (insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se insertó correctamente");
-		        } else {
-		    		response.setCode(-1);
-		    		response.addMessage("No se insertaron registros");
-		        }
+				TagsEntity tagEntidad = tagDtoToEntity(tag);
+				
+				tagsRepositoryDao.create(tagEntidad);
+		        response.setCode(1);
+		        response.addMessage("Se insertó correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -155,15 +152,11 @@ public class TagsServiceImpl implements TagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = tagsRepository.updateTag(tag);
-		        
-		        if (insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se actualizó correctamente");
-		        } else {
-		    		response.setCode(-1);
-		    		response.addMessage("No se actualizaron registros");
-		        }
+				TagsEntity tagEntidad = tagDtoToEntity(tag);
+				
+				tagsRepositoryDao.update(tagEntidad);
+		        response.setCode(1);
+		        response.addMessage("Se actualizó correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -187,15 +180,13 @@ public class TagsServiceImpl implements TagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = tagsRepository.deleteTag(idTag);
+				//tagsRepositoryDao.delete(idTag); //Not actual deletition, logical deletition instead
+		        TagsEntity tag = tagsRepositoryDao.getTagById(idTag, false);
+		        tag.setActive(false);
+		        tagsRepositoryDao.update(tag);
 		        
-		        if(insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se borró correctamente");
-		        } else {
-		        	response.setCode(-1);
-		    		response.addMessage("No se borraron registros");
-		        }
+		        response.setCode(1);
+		        response.addMessage("Se borró correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -208,6 +199,19 @@ public class TagsServiceImpl implements TagsService {
 		}
 
 		return response;
+	}
+
+	//Mapper
+	
+	private TagsEntity tagDtoToEntity(TagsDto tag) {
+		TagsEntity tagEntidad = new TagsEntity();
+		tagEntidad.setIdTag(tag.getIdTag());
+		tagEntidad.setName(tag.getName());
+		tagEntidad.setCreatedAt(tag.getCreatedAt());
+		tagEntidad.setUpdatedAt(tag.getUpdatedAt());
+		tagEntidad.setActive(tag.isActive());
+		
+		return tagEntidad;
 	}
 
 	//Validaciones

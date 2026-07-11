@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 
 import mx.com.misterjob.dto.RecetasTagsDto;
 import mx.com.misterjob.dto.ResponseDto;
-import mx.com.misterjob.repository.RecetasTagsRepository;
+import mx.com.misterjob.entity.RecetasTagsEntity;
+import mx.com.misterjob.entity.compoundIds.RecetasTagsId;
+import mx.com.misterjob.repository.dao.RecetasTagsRepositoryDao;
 import mx.com.misterjob.service.RecetasService;
 import mx.com.misterjob.service.RecetasTagsService;
 import mx.com.misterjob.service.TagsService;
@@ -16,7 +18,7 @@ import mx.com.misterjob.service.TagsService;
 @Service
 public class RecetasTagsServiceImpl implements RecetasTagsService {
 	@Autowired
-	private RecetasTagsRepository recetasTagsRepository;
+	private RecetasTagsRepositoryDao recetasTagsRepositoryDao;
 	@Autowired
 	private TagsService tagsService;
 	@Autowired
@@ -29,7 +31,7 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-				List<RecetasTagsDto> recetasTags = recetasTagsRepository.getRecetasTagsByIdReceta(idReceta);
+				List<RecetasTagsEntity> recetasTags = recetasTagsRepositoryDao.getRecetasTagsByIdReceta(idReceta);
 				
 				if(recetasTags != null && !recetasTags.isEmpty()) {
 					response.setCode(1);
@@ -61,7 +63,7 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-				List<RecetasTagsDto> recetasTags = recetasTagsRepository.getRecetasTagsByIdTag(idTag);
+				List<RecetasTagsEntity> recetasTags = recetasTagsRepositoryDao.getRecetasTagsByIdTag(idTag);
 				
 				if(recetasTags != null && !recetasTags.isEmpty()) {
 					response.setCode(1);
@@ -94,7 +96,8 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-				RecetasTagsDto recetaTag = recetasTagsRepository.getRecetaTag(idReceta, idTag);
+				RecetasTagsId id = new RecetasTagsId(idReceta, idTag);
+				RecetasTagsEntity recetaTag = recetasTagsRepositoryDao.read(id);
 				
 				if(recetaTag != null) {
 					response.setCode(1);
@@ -130,15 +133,11 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = recetasTagsRepository.insertRecetaTag(recetaTag);
-		        
-		        if (insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se insertó correctamente");
-		        } else {
-		    		response.setCode(-1);
-		    		response.addMessage("No se insertaron registros");
-		        }
+				RecetasTagsEntity recetaTagEntidad = recetaTagDtoToEntity(recetaTag);
+				
+		        recetasTagsRepositoryDao.create(recetaTagEntidad);
+		        response.setCode(1);
+		        response.addMessage("Se insertó correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -162,9 +161,9 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = recetasTagsRepository.deleteRecetasTagsByIdReceta(idReceta);
+		        Integer insertResponse = recetasTagsRepositoryDao.deleteRecetasTagsByIdReceta(idReceta);
 		        
-		        if (insertResponse == 1) {
+		        if (insertResponse > 0) {
 		        	response.setCode(1);
 		        	response.addMessage("Se borró correctamente");
 		        } else {
@@ -194,15 +193,11 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		
 		if (response.getCode() == null) {
 			try {
-		        Integer insertResponse = recetasTagsRepository.deleteRecetaTag(idReceta, idTag);
-		        
-		        if (insertResponse == 1) {
-		        	response.setCode(1);
-		        	response.addMessage("Se borró correctamente");
-		        } else {
-		        	response.setCode(-1);
-		    		response.addMessage("No se borraron registros");
-		        }
+				RecetasTagsId id = new RecetasTagsId(idReceta, idTag);
+				
+		        recetasTagsRepositoryDao.delete(id);
+		        response.setCode(1);
+		        response.addMessage("Se borró correctamente");
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -215,6 +210,18 @@ public class RecetasTagsServiceImpl implements RecetasTagsService {
 		}
 
 		return response;
+	}
+
+	//Mapper
+	
+	private RecetasTagsEntity recetaTagDtoToEntity(RecetasTagsDto recetaTag) {
+		RecetasTagsEntity recetaTagEntidad = new RecetasTagsEntity();
+		recetaTagEntidad.setIdRecipe(recetaTag.getIdRecipe());
+		recetaTagEntidad.setIdTag(recetaTag.getIdTag());
+		recetaTagEntidad.setCreatedAt(recetaTag.getCreatedAt());
+		recetaTagEntidad.setUpdatedAt(recetaTag.getUpdatedAt());
+		
+		return recetaTagEntidad;
 	}
 
 	//Validaciones
