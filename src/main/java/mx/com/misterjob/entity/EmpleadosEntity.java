@@ -12,9 +12,9 @@ import javax.persistence.Table;
 @Table(name = "EMPLEADOS", schema="ADMIN_RECETAS_WEBSITE")
 public class EmpleadosEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence_generator")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "empleado_sequence_generator")
     @SequenceGenerator(
-        name = "user_sequence_generator", 
+        name = "empleado_sequence_generator", 
         sequenceName = "SEQ_EMP", 
         allocationSize = 1
     )

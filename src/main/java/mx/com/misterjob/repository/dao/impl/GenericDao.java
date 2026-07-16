@@ -18,9 +18,9 @@ import mx.com.misterjob.repository.dao.Dao;
 public abstract class GenericDao<T, PK extends Serializable> implements Dao<T, PK>{
 	
 	 @Autowired
-	   protected SessionFactory sessionFactory;
+	 protected SessionFactory sessionFactory;
 
-	   protected final Class<T> entityType;
+	 protected final Class<T> entityType;
 
 	   {
 	      final ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();

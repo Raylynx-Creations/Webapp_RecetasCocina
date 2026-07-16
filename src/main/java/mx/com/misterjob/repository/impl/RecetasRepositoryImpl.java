@@ -39,7 +39,7 @@ public class RecetasRepositoryImpl implements RecetasRepository {
 	}
 	
 	public Integer updateReceta(RecetasDto receta) {
-		return jdbcTemplate.update("UPDATE RECIPES SET ID_USER=?, TITLE=?, DESCRIPTION=?, INSTRUCTIONS=?, PREAPARATION_TIME_MINUTES=?, COOK_TIME_MINUTES=?, PORTIONS=?, DIFFICULTY=?, IMAGE=?, VISIBILITY=?, UPDATED_AT=?, VIEWS=?, LIKES=?, IS_ACTIVE=? WHERE ID_RECIPE=?",
+		return jdbcTemplate.update("UPDATE RECIPES SET ID_USER=?, TITLE=?, DESCRIPTION=?, INSTRUCTIONS=?, PREPARATION_TIME_MINUTES=?, COOK_TIME_MINUTES=?, PORTIONS=?, DIFFICULTY=?, IMAGE=?, VISIBILITY=?, UPDATED_AT=?, VIEWS=?, LIKES=?, IS_ACTIVE=? WHERE ID_RECIPE=?",
 				new Object[] {receta.getIdUser(), receta.getTitle(), receta.getDescription(),
 						receta.getInstructions(), receta.getPreparationTimeMinutes(), receta.getCookTimeMinutes(),
 						receta.getPortions(), receta.getDifficulty(), receta.getImage(), receta.getVisibility(),

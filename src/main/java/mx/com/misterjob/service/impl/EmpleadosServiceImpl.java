@@ -1,37 +1,41 @@
 package mx.com.misterjob.service.impl;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import mx.com.misterjob.dto.EmpleadosDto;
 import mx.com.misterjob.dto.ResponseDto;
 import mx.com.misterjob.dto.UsuariosDto;
+import mx.com.misterjob.entity.EmpleadosEntity;
 import mx.com.misterjob.entity.UsuariosEntity;
+import mx.com.misterjob.repository.dao.EmpleadosRepositoryDao;
 import mx.com.misterjob.repository.dao.UsuariosRepositoryDao;
-import mx.com.misterjob.service.AuditoriaService;
+import mx.com.misterjob.service.EmpleadosService;
 import mx.com.misterjob.service.UsuariosService;
 
 @Service
-public class EmpleadosServiceImpl implements UsuariosService{
+public class EmpleadosServiceImpl implements EmpleadosService{
 	@Autowired
-	private UsuariosRepositoryDao usuariosRepositoryDao;
+	private EmpleadosRepositoryDao empleadosRepositoryDao;
 
-	public ResponseDto getUsuarios() {
+	public ResponseDto getEmpleadosMasculinos() {
 		ResponseDto response = new ResponseDto();
 		
 		try {
-			List<UsuariosEntity> usuarios = usuariosRepositoryDao.getUsuarios();
+			List<EmpleadosEntity> usuarios = empleadosRepositoryDao.getEmpleadosMasculinos();
 			
 			if(usuarios != null && !usuarios.isEmpty()) {
 				response.setCode(1);
-				response.addMessage("Registros de usuarios obtenidos");
+				response.addMessage("Registros de empleados obtenidos");
 				response.setContent(usuarios);
 			}
 			else {
 				response.setCode(-1);
-				response.addMessage("No se obtuvieron usuarios");
+				response.addMessage("No se obtuvieron empleados");
 			}
 		}
 		catch (NullPointerException nullPointerException) {
@@ -40,21 +44,50 @@ public class EmpleadosServiceImpl implements UsuariosService{
 		}
 		catch (Exception exception) {
 			response.setCode(-100);
-			response.addMessage("Error al consultar los usuarios, verifique");
+			response.addMessage("Error al consultar los empleados, verifique");
+			exception.printStackTrace();
+		}
+		
+		return response;
+	}
+	
+	public ResponseDto getEmpleadosFemeninosEdad35() {
+		ResponseDto response = new ResponseDto();
+		
+		try {
+			List<EmpleadosEntity> usuarios = empleadosRepositoryDao.getEmpleadosFemeninosEdad35();
+			
+			if(usuarios != null && !usuarios.isEmpty()) {
+				response.setCode(1);
+				response.addMessage("Registros de empleados obtenidos");
+				response.setContent(usuarios);
+			}
+			else {
+				response.setCode(-1);
+				response.addMessage("No se obtuvieron empleados");
+			}
+		}
+		catch (NullPointerException nullPointerException) {
+			response.setCode(-10);
+			response.addMessage("Algún dato viene nulo");
+		}
+		catch (Exception exception) {
+			response.setCode(-100);
+			response.addMessage("Error al consultar los empleados, verifique");
 			exception.printStackTrace();
 		}
 		
 		return response;
 	}
 
-	public ResponseDto getUsuarioById(Integer idUsuario, Boolean update) {
+	public ResponseDto getEmpleadoByRfc(String rfc) {
 		ResponseDto response = new ResponseDto();
 		
-		validateIdUser(idUsuario, response);
+		validateRfc(rfc, response);
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioById(idUsuario, update);
+				EmpleadosEntity usuario = empleadosRepositoryDao.getEmpleadoByRfc(rfc);
 				
 				if(usuario != null) {
 					response.setCode(1);
@@ -83,99 +116,21 @@ public class EmpleadosServiceImpl implements UsuariosService{
 		return response;
 	}
 	
-	public ResponseDto getUsuarioByUsername(String usernameUsuario, Integer idUsuario) {
+	public ResponseDto insertEmpleado(EmpleadosDto empleado) {
 		ResponseDto response = new ResponseDto();
 		
-		validateUsername(usernameUsuario, response);
-		
-		if (response.getCode() == null) {
-			try {
-				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioByUsername(usernameUsuario, idUsuario);
-				
-				if(usuario != null) {
-					response.setCode(1);
-					response.addMessage("Registro de usuario obtenido");
-					response.setContent(usuario);
-				} else {
-					response.setCode(-1);
-					response.addMessage("No se obtuvo el usuario");
-				}
-			}
-			catch (EmptyResultDataAccessException emptyResultDataAccessException) {
-				response.setCode(-10);
-				response.addMessage("El usuario con el nombre de usuario dado no existe");
-			}
-			catch (NullPointerException nullPointerException) {
-				response.setCode(-20);
-				response.addMessage("Algún dato viene nulo");
-			}
-			catch (Exception exception) {
-				response.setCode(-100);
-				response.addMessage("Error al consultar el usuario, verifique");
-			}
+		if (validateNombre(empleado.getNombreCompleto(), response) == 1) {
+			validateExistence(empleado.getNombreCompleto(), response);
 		}
-		
-		return response;
-	}
-	
-	public ResponseDto getUsuarioByEmail(String emailUsuario, Integer idUsuario) {
-		ResponseDto response = new ResponseDto();
-		
-		validateEmail(emailUsuario, response);
+		validateFields(empleado, response);
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioByEmail(emailUsuario, idUsuario);
+				EmpleadosEntity usuarioEntidad = empleadosDtoToEntity(empleado);
 				
-				if(usuario != null) {
-					response.setCode(1);
-					response.addMessage("Registro de usuario obtenido");
-					response.setContent(usuario);
-				} else {
-					response.setCode(-1);
-					response.addMessage("No se obtuvo el usuario");
-				}
-			}
-			catch (EmptyResultDataAccessException emptyResultDataAccessException) {
-				response.setCode(-10);
-				response.addMessage("El usuario con el nombre de usuario dado no existe");
-			}
-			catch (NullPointerException nullPointerException) {
-				response.setCode(-20);
-				response.addMessage("Algún dato viene nulo");
-			}
-			catch (Exception exception) {
-				response.setCode(-100);
-				response.addMessage("Error al consultar el usuario, verifique");
-			}
-		}
-		
-		return response;
-	}
-
-	public ResponseDto insertUsuario(UsuariosDto usuario) {
-		ResponseDto response = new ResponseDto();
-		
-		validateUserFields(usuario, response, null);
-		
-		if (response.getCode() == null) {
-			try {
-				UsuariosEntity usuarioEntidad = userDtoToEntity(usuario);
-				
-		        usuariosRepositoryDao.create(usuarioEntidad);
+		        empleadosRepositoryDao.create(usuarioEntidad);
 		        response.setCode(1);
 	        	response.addMessage("Se insertó correctamente");
-	        	
-	        	/*AuditoriaDto auditoria = new AuditoriaDto();
-	        	auditoria.setIdUser(1);
-	        	auditoria.setIdAction((byte) 1);
-	        	auditoria.setIdTable((byte) 1);
-	        	auditoria.setRecordId(recordId); //Todo all this, find a way.
-	        	auditoria.setNewData(newData);
-	        	auditoria.setOldData(null);
-	        	auditoria.setMadeAt(madeAt);
-	        	
-	        	auditoriaService.insertAuditoria(auditoria);*/
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -190,20 +145,25 @@ public class EmpleadosServiceImpl implements UsuariosService{
 		return response;
 	}
 
-	public ResponseDto updateUsuario(UsuariosDto usuario) {
+	public ResponseDto updateEmpleado(EmpleadosDto usuario) {
 		ResponseDto response = new ResponseDto();
 		
-		Integer idValido = validateIdUser(usuario.getIdUser(), response);
-		validateUserFields(usuario, response, usuario.getIdUser());
-		if (idValido == 1) {
-			validateUserExistence(usuario.getIdUser(), response, true);
+		if (validateId(usuario.getIdEmpleado(), response) == 1) {
+			EmpleadosEntity empleado = empleadosRepositoryDao.getEmpleadoById(usuario.getIdEmpleado(), true);
+			
+			if (empleado == null) {
+				response.setCode(-30);
+				response.addMessage("El empleado con la ID dada no existe o esta dado de baja, no puede actualizar su informacion! Verifique que sea el ID correcto y que este activo.");
+			}
 		}
+		validateNombre(usuario.getNombreCompleto(), response);
+		validateFields(usuario, response);
 		
 		if (response.getCode() == null) {
 			try {
-				UsuariosEntity usuarioEntidad = userDtoToEntity(usuario);
+				EmpleadosEntity usuarioEntidad = empleadosDtoToEntity(usuario);
 				
-		        usuariosRepositoryDao.update(usuarioEntidad);
+		        empleadosRepositoryDao.update(usuarioEntidad);
 	        	response.setCode(1);
 	        	response.addMessage("Se actualizó correctamente");
 	        	//Auditoria Service
@@ -221,22 +181,23 @@ public class EmpleadosServiceImpl implements UsuariosService{
 		return response;
 	}
 
-	public ResponseDto deleteUsuario(Integer idUsuario) {
+	public ResponseDto deleteEmpleado(Integer idEmpleado) {
 		ResponseDto response = new ResponseDto();
 		
-		if (validateIdUser(idUsuario, response) == 1) {
-			validateUserExistence(idUsuario, response, false);
-		}
+		validateId(idEmpleado, response);
 		
 		if (response.getCode() == null) {
 			try {
-		        //usuariosRepositoryDao.delete(idUsuario); //Not actual deletition, logical deletition instead
-		        UsuariosEntity usuario = usuariosRepositoryDao.getUsuarioById(idUsuario, false);
-		        usuario.setActive(false);
-		        usuariosRepositoryDao.update(usuario);
-		        
-				response.setCode(1);
-		        response.addMessage("Se eliminó correctamente");
+				EmpleadosEntity empleado = empleadosRepositoryDao.getEmpleadoById(idEmpleado, false);
+				
+				if (empleado != null) {
+					empleadosRepositoryDao.delete(idEmpleado);
+					response.setCode(1);
+			        response.addMessage("Empleado eliminado correctamente");
+				} else {
+					response.setCode(-20);
+			        response.addMessage("Imposible eliminar Empleado, el ID suplementado no existe o sigue laborando (Activo)...! ");
+				}
 			}
 			catch (NullPointerException nullPointerException) {
 				response.setCode(-10);
@@ -253,99 +214,117 @@ public class EmpleadosServiceImpl implements UsuariosService{
 	
 	//Mapper
 	
-	private UsuariosEntity userDtoToEntity(UsuariosDto usuario) {
-		UsuariosEntity usuarioEntidad = new UsuariosEntity();
-		usuarioEntidad.setIdUser(usuario.getIdUser());
-		usuarioEntidad.setUsername(usuario.getUsername());
-		usuarioEntidad.setEmail(usuario.getEmail());
-		usuarioEntidad.setPasswordHash(usuario.getPasswordHash());
-		usuarioEntidad.setDisplayName(usuario.getDisplayName());
-		usuarioEntidad.setProfilePicture(usuario.getProfilePicture());
-		usuarioEntidad.setBio(usuario.getBio());
-		usuarioEntidad.setRole(usuario.getRole());
-		usuarioEntidad.setCreatedAt(usuario.getCreatedAt());
-		usuarioEntidad.setUpdatedAt(usuario.getUpdatedAt());
-		usuarioEntidad.setLastLogin(usuario.getLastLogin());
-		usuarioEntidad.setActive(usuario.isActive());
+	private EmpleadosEntity empleadosDtoToEntity(EmpleadosDto empleado) {
+		EmpleadosEntity empleadoEntidad = new EmpleadosEntity();
+		empleadoEntidad.setIdEmpleado(empleado.getIdEmpleado());
+		empleadoEntidad.setNombreCompleto(empleado.getNombreCompleto());
+		empleadoEntidad.setRfc(empleado.getRfc());
+		empleadoEntidad.setCurp(empleado.getCurp());
+		empleadoEntidad.setEdad(empleado.getEdad());
+		empleadoEntidad.setSexo(empleado.getSexo());
+		empleadoEntidad.setDireccion(empleado.getDireccion());
+		empleadoEntidad.setNss(empleado.getNss());
+		empleadoEntidad.setTelefono(empleado.getTelefono());
+		empleadoEntidad.setActivo(empleado.getActivo());
 		
-		return usuarioEntidad;
+		return empleadoEntidad;
 	}
 	
 	//Validaciones
 	
-	private int validateIdUser(Integer id, ResponseDto response) {
-		if (id == null || id < 0 || id > 9999999999L) {
+	private int validateId(Integer id, ResponseDto response) {
+		if (id == null || id < 0 || id > 99999999999L) {
 			response.setCode(-2);
-			response.addMessage("El ID debe no ser nulo y estar entre 0 y 9,999,999,999.");
+			response.addMessage("El ID debe no ser nulo y estar entre 0 y 99,999,999,999.");
 			return 0;
 		}
 		
 		return 1;
 	}
 	
-	private int validateUsername(String username, ResponseDto response) {
-		if (username == null || username.length() > 30) {
-			response.setCode(-3);
-			response.addMessage("El nombre de usuario debe no ser nulo y no tener una longitud mayor a 30 caracteres.");
-			return 0;
-		}
-		
-		return 1;
-	}
-	
-	private int validateEmail(String email, ResponseDto response) {
-		if (email == null || email.length() > 50) {
-			response.setCode(-4);
-			response.addMessage("El email debe no ser nulo y no tener una longitud mayor a 50 caracteres.");
-			return 0;
-		}
-		
-		return 1;
-	}
-	
-	private void validateUserFields(UsuariosDto usuario, ResponseDto response, Integer idUsuario) {
-		if (validateUsername(usuario.getUsername(), response) == 1 && getUsuarioByUsername(usuario.getUsername(), idUsuario).getCode() > 0) {
-			response.setCode(-14);
-			response.addMessage("El nombre de usuario ya se encuentra en uso, debes escoger otro nombre de usuario diferente.");
-		}
-		if (validateEmail(usuario.getEmail(), response) == 1 && getUsuarioByEmail(usuario.getEmail(), idUsuario).getCode() > 0) {
-			response.setCode(-15);
-			response.addMessage("El email ya se encuentra en uso, debes escoger otro email diferente.");
-		}
-		if (usuario.getPasswordHash() == null || usuario.getPasswordHash().length() > 70) {
-			response.setCode(-5);
-			response.addMessage("El password hash debe no ser nulo y no tener una longitud mayor a 70 caracteres.");
-		}
-		if (usuario.getDisplayName() != null && usuario.getDisplayName().length() > 30) {
+	private void validateFields(EmpleadosDto empleado, ResponseDto response) {
+		validateRfc(empleado.getRfc(), response);
+		validateCurp(empleado.getCurp(), response);
+		if (empleado.getEdad() != null && (empleado.getEdad() < 0 || empleado.getEdad() > 100)) {
 			response.setCode(-6);
-			response.addMessage("El nombre a mostrar debe no tener una longitud mayor a 30 caracteres, no es lo mismo el nombre de usuario del nombre a mostrar.");
+			response.addMessage("La edad debe ser un npumero entre 0 y 100.");
 		}
-		if (usuario.getBio() != null && usuario.getBio().length() > 300) {
+		if (empleado.getSexo() != null && !(empleado.getSexo().equals("F") || empleado.getSexo().equals("M"))) {
 			response.setCode(-7);
-			response.addMessage("La bio debe no tener una longitud mayor a 300 caracteres.");
+			response.addMessage("El sexo solo puede ser F o M, solo un caracter.");
 		}
-		if (usuario.getRole() == null || usuario.getRole() < 0 || usuario.getRole() > 2) {
+		if (empleado.getDireccion() != null && empleado.getDireccion().length() > 100) {
 			response.setCode(-8);
-			response.addMessage("El rol de usuario debe no ser nulo y ser 0, 1 o 2 unicamente.");
+			response.addMessage("La direccion debe no ser mayor a 100 caracteres.");
 		}
-		if (usuario.getCreatedAt() == null) {
-			response.setCode(-9);
-			response.addMessage("La fecha y hora de creacion no debe ser nulo.");
-		}
-		if (usuario.getUpdatedAt() == null) {
-			response.setCode(-11);
-			response.addMessage("La fecha y hora de actualizacion no debe ser nulo.");
-		}
-		if (usuario.isActive() == null) {
-			response.setCode(-12);
-			response.addMessage("Debes especificar si el usuario esta activo o no, 'active' es el campo para ello, no 'isActive'.");
+		validateNss(empleado.getNss(), response);
+		if (empleado.getActivo() == null) {
+			response.setCode(-10);
+			response.addMessage("El estado activo no debe ser nulo y debe ser un booleano, true o false.");
 		}
 	}
 	
-	private void validateUserExistence(Integer id, ResponseDto response, Boolean update) {
-		if (getUsuarioById(id, update).getCode() <= 0) {
-			response.setCode(-13);
-			response.addMessage("El usuario con la ID dada no existe o esta desactivado, no se puede actualizar o borrar si no existe o esta desactivado.");
+	private int validateNombre(String nombre, ResponseDto response) {
+		if (nombre == null || nombre.length() > 100) {
+			response.setCode(-3);
+			response.addMessage("El nombre completo debe no ser nulo y no ser mayor a 100 caracteres.");
+			return 0;
 		}
+		
+		return 1;
+	}
+	
+	private int validateRfc(String rfc, ResponseDto response) {
+		if (rfc == null || rfc.length() != 13) {
+			response.setCode(-4);
+			response.addMessage("El RFC debe no ser nulo y ser exactamente 13 caracteres.");
+			return 0;
+		} else if (!rfc.toUpperCase().matches("^[A-ZÑ&]{3,4}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])[A-Z0-9]{3}$")) {
+			response.setCode(-21);
+			response.addMessage("El RFC no tiene la estructura correcta, verifique su RFC.");
+			return 0;
+		}
+		
+		return 1;
+	}
+	
+	private int validateCurp(String curp, ResponseDto response) {
+		if (curp == null || curp.length() != 18) {
+			response.setCode(-5);
+			response.addMessage("La CURP debe no ser nulo y ser exactamente 18 caracteres.");
+			return 0;
+		} else if (!curp.toUpperCase().matches("[A-Z][AEIOUX][A-Z]{2}\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])[HM](?:AS|B[CS]|C[CLMSH]|D[FG]|G[TR]|HG|JC|M[CNS]|N[ETL]|OC|PL|Q[TR]|S[PLR]|T[CSL]|VZ|YN|ZS)[B-DF-HJ-NP-TV-Z]{3}[A-Z\\d]\\d")){
+			response.setCode(-22);
+			response.addMessage("La CURP no tiene la estructura correcta, verifique su CURP.");
+			return 0;
+		}
+		
+		return 1;
+	}
+	
+	private int validateNss(String nss, ResponseDto response) {
+		if (nss == null || nss.length() != 10) {
+			response.setCode(-9);
+			response.addMessage("El NSS no cuenta con la estrutura adecuada, debe ser 10 digitos exactamente.");
+			return 0;
+		} else if (!nss.matches("\\d+")) {
+			response.setCode(-23);
+			response.addMessage("El NSS debe ser numerico unicamente.");
+			return 0;
+		}
+		
+		return 1;
+	}
+	
+	private int validateExistence(String nombre, ResponseDto response) {
+		EmpleadosEntity empleado = empleadosRepositoryDao.getEmpleadoByNombre(nombre);
+		
+		if (empleado != null) {
+			response.setCode(-1);
+			response.addMessage("El empleado con nombre " + nombre + " ya existe.");
+			return 0;
+		}
+		
+		return 1;
 	}
 }
